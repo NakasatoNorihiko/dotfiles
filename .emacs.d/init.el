@@ -1,6 +1,6 @@
 ;; ~/.emacs.d/elispディレクトリをロードパスに追加する
 ;; ただし、add-to-load-path関数を作成した場合は不要
-;; (add-to-list 'load-path "~/.emacs.d/elisp/")
+(add-to-list 'load-path "~/.emacs.d/elisp/")
 ;; load-path を追加する関数を定義
 (defun add-to-load-path (&rest paths)
   (let (path)
@@ -10,16 +10,48 @@
 	(add-to-list 'load-path default-directory)
 	(if (fboundp 'normal-top-level-add-subdirs-to-load-path)
 	    (normal-top-level-add-subdirs-to-load-path))))))
+
+
 ;;Macだけに読み込ませる内容
 (when (eq system-type 'darwin)
   ;;ファイル名を正しく扱うための設定
   (require 'ucs-normalize)
   (setq file-name-coding-system 'utf-8-hfs)
   (setq locale-coding-system 'utf-8-hfs))
+
 ;;¥をバックスラッシュに変換
 (define-key global-map [?¥] [?\\])
 ;;対応するカッコを表示する
 (show-paren-mode 1)
+
+;; auto-installの設定
+(when (require 'auto-install nil t)
+  ;; インストールディレクトリを設定する 初期値は ~/.emacs.d/auto-install/
+  (setq auto-install-directory "~/.emacs.d/elisp/")
+  ;; EmacsWikiに登録されているelispの名前を取得する
+  (auto-install-update-emacswiki-package-name t)
+  (auto-install-compatibility-setup))
+
+;;redo+.elのインストール・設定
+;; (install-elisp "http://www.emacswiki.org/emacs/download/redo+.el")
+(when (require 'redo+ nil t)
+  ;;C-.に割り当て
+  (global-set-key (kbd "C-.") 'redo)
+  )
+
+;;日本語かにする
+(set-language-environment "Japanese")
+;;UTF-8にする
+(prefer-coding-system 'utf-8)
+
+;;OS Xの場合のファイル名のせってい
+(when (eq system-type 'darwin)
+  (require 'ucs-normalize)
+  (set-file-name-coding-system 'utf-8-hfs)
+  (setq locale-coding-system 'utf-8-hfs))
+
+;; "C-t"でウィンドウを切り替える。初期値はtranspose-chars
+(define-key global-map (kbd "C-t") 'other-window)
 
 ;;行番号・桁番号を表示する
 (global-linum-mode t)
@@ -30,8 +62,6 @@
 (global-hl-line-mode t)
 (set-face-background 'hl-line "navy")
 
-;;UTF-8にする
-(prefer-coding-system 'utf-8)
 
 ;;背景を黒にする
 (add-to-list 'default-frame-alist '(background-color . "black"))
@@ -78,6 +108,13 @@
 ;;
 (global-font-lock-mode t)
 
+;;ファイルサイズを表示
+(size-indication-mode t)
+;;時計を表示
+(display-time-mode t)
+;;タイトルバーにフルパスを表示
+(setq frame-title-format "%f")
+
 ;最終行に必ず一行追加する
 (setq require-final-newline t)
 
@@ -108,14 +145,28 @@
 ;;引数のディレクトリとそのサブディレクトリをload-pathに追加
 (add-to-load-path "elisp" "conf" "public_repos")
 
+;; インデントにタブ文字を使用しない
+(setq-default indent-tabs-mode nil)
+
+;; ファイルが#!から始まる場合,+xを着けて保存する
+(add-hook 'after-save-hook
+          'executable-make-buffer-file-executable-if-script-p)
+
 ;;Auto Complete Modeの設定
-(require 'auto-complete-config)
-(add-to-list 'ac-dictionary-directories "~/.emacs.d/elisp/ac-dict")
-(ac-config-default)
-(add-hook 'auto-complete-mode-hook
-	  (lambda ()
-	    (define-key ac-completing-map "\r" 'ac-stop) ;;returnで自動補完停止
-	    (define-key ac-completing-map " " 'ac-complete) ;;スペースで確定
+(when (require 'auto-complete-config nil t)
+  (add-to-list 'ac-dictionary-directories "~/.emacs.d/elisp//ac-dict")
+  ;; (add-to-list 'ac-dictionary-directories
+  ;;              "~/.emacs.d/elisp/ac-dict")
+  (define-key ac-mode-map (kbd "M-TAB") 'auto-complete)
+  (ac-config-default))
+
+;; (require 'auto-complete-config)
+;; (add-to-list 'ac-dictionary-directories "~/.emacs.d/elisp/ac-dict")
+;; (ac-config-default)
+;; (add-hook 'auto-complete-mode-hook
+;; 	  (lambda ()
+;; 	    (define-key ac-completing-map "\r" 'ac-stop) ;;returnで自動補完停止
+;; 	    (define-key ac-completing-map " " 'ac-complete) ;;スペースで確定
 	    ))
 
 ;;Cの全自動インデント設定

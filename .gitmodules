@@ -1,0 +1,3 @@
+[submodule ".emacs.d/elisp/auto-complete"]
+	path = .emacs.d/elisp/auto-complete
+	url = git://github.com/auto-complete/auto-complete.git
